@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CampariTest": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

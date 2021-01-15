@@ -1,0 +1,6 @@
+[submodule "lib/Campari"]
+	path = lib/Campari
+	url = https://github.com/thatcosmonaut/Campari.git
+[submodule "lib/SDL2-CS"]
+	path = lib/SDL2-CS
+	url = https://github.com/flibitijibibo/SDL2-CS.git
