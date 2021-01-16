@@ -106,25 +106,9 @@ namespace CampariTest
             woodTexture = Texture.LoadPNG(Device, new System.IO.FileInfo("woodgrain.png"));
             noiseTexture = Texture.LoadPNG(Device, new System.IO.FileInfo("noise.png"));
 
-            Refresh.SamplerStateCreateInfo samplerStateCreateInfo = new Refresh.SamplerStateCreateInfo
-            {
-                minFilter = Refresh.Filter.Linear,
-                magFilter = Refresh.Filter.Linear,
-                mipmapMode = Refresh.SamplerMipmapMode.Linear,
-                addressModeU = Refresh.SamplerAddressMode.Repeat,
-                addressModeV = Refresh.SamplerAddressMode.Repeat,
-                addressModeW = Refresh.SamplerAddressMode.Repeat,
-                mipLodBias = 1,
-                anisotropyEnable = 0,
-                maxAnisotropy = 0,
-                compareEnable = 0,
-                compareOp = Refresh.CompareOp.Never,
-                minLod = 1,
-                maxLod = 1,
-                borderColor = Refresh.BorderColor.FloatOpaqueBlack
-            };
+            SamplerState samplerState = SamplerState.LinearWrap;
 
-            sampler = new Sampler(Device, ref samplerStateCreateInfo);
+            sampler = new Sampler(Device, ref samplerState);
 
             /* Load Vertex Data */
 
@@ -147,12 +131,12 @@ namespace CampariTest
             vertices[2].u = 0;
             vertices[2].v = 0;
 
-            vertexBuffer = new Campari.Buffer(Device, (uint) Refresh.BufferUsageFlagBits.Vertex, 4 * 5 * 3);
+            vertexBuffer = new Campari.Buffer(Device, Refresh.BufferUsageFlags.Vertex, 4 * 5 * 3);
             vertexBuffer.SetData(0, vertices, 4 * 5 * 3);
 
             vertexBuffers[0] = vertexBuffer;
 
-            offsets = new UInt64[1];
+            offsets = new ulong[1];
             offsets[0] = 0;
 
             /* Render Pass */
@@ -182,19 +166,13 @@ namespace CampariTest
 
             mainRenderPass = new RenderPass(Device, colorTargetDescription);
 
-            Refresh.TextureCreateInfo textureCreateInfo = new Refresh.TextureCreateInfo
-            {
-                width = windowWidth,
-                height = windowHeight,
-                depth = 1,
-                isCube = 0,
-                sampleCount = Refresh.SampleCount.One,
-                levelCount = 1,
-                format = Refresh.ColorFormat.R8G8B8A8,
-                usageFlags = (uint) Refresh.TextureUsageFlagBits.ColorTargetBit
-            };
-
-            mainColorTargetTexture = new Texture(Device, ref textureCreateInfo);
+            mainColorTargetTexture = Texture.CreateTexture2D(
+                Device,
+                windowWidth,
+                windowHeight,
+                Refresh.ColorFormat.R8G8B8A8,
+                Refresh.TextureUsageFlags.ColorTargetBit
+            );
 
             mainColorTargetTextureSlice = new TextureSlice(mainColorTargetTexture);
 
@@ -210,19 +188,10 @@ namespace CampariTest
             );
 
             /* Pipeline */
-            Refresh.ColorTargetBlendState[] colorTargetBlendStates = new Refresh.ColorTargetBlendState[1]
+
+            ColorTargetBlendState[] colorTargetBlendStates = new ColorTargetBlendState[1]
             {
-                new Refresh.ColorTargetBlendState
-                {
-                    blendEnable = 0,
-                    alphaBlendOp = 0,
-                    colorBlendOp = 0,
-                    colorWriteMask = uint.MaxValue,
-                    destinationAlphaBlendFactor = 0,
-                    destinationColorBlendFactor = 0,
-                    sourceAlphaBlendFactor = 0,
-                    sourceColorBlendFactor = 0
-                }
+                ColorTargetBlendState.None
             };
 
             ColorBlendState colorBlendState = new ColorBlendState
@@ -233,18 +202,7 @@ namespace CampariTest
                 ColorTargetBlendStates = colorTargetBlendStates
             };
 
-            DepthStencilState depthStencilState = new DepthStencilState
-            {
-                DepthTestEnable = false,
-                BackStencilState = new Refresh.StencilOpState(),
-                FrontStencilState = new Refresh.StencilOpState(),
-                CompareOp = Refresh.CompareOp.Never,
-                DepthBoundsTestEnable = false,
-                DepthWriteEnable = false,
-                MinDepthBounds = 0,
-                MaxDepthBounds = 1,
-                StencilTestEnable = false
-            };
+            DepthStencilState depthStencilState = DepthStencilState.Disable;
 
             ShaderStageState vertexShaderState = new ShaderStageState
             {
@@ -260,11 +218,7 @@ namespace CampariTest
                 UniformBufferSize = 4
             };
 
-            MultisampleState multisampleState = new MultisampleState
-            {
-                MultisampleCount = Refresh.SampleCount.One,
-                SampleMask = uint.MaxValue
-            };
+            MultisampleState multisampleState = MultisampleState.None;
 
             GraphicsPipelineLayoutCreateInfo pipelineLayoutCreateInfo = new GraphicsPipelineLayoutCreateInfo
             {
@@ -272,18 +226,7 @@ namespace CampariTest
                 FragmentSamplerBindingCount = 2
             };
 
-            RasterizerState rasterizerState = new RasterizerState
-            {
-                CullMode = Refresh.CullMode.Back,
-                DepthBiasClamp = 0,
-                DepthBiasConstantFactor = 0,
-                DepthBiasEnable = false,
-                DepthBiasSlopeFactor = 0,
-                DepthClampEnable = false,
-                FillMode = Refresh.FillMode.Fill,
-                FrontFace = Refresh.FrontFace.Clockwise,
-                LineWidth = 1.0f
-            };
+            RasterizerState rasterizerState = RasterizerState.CullCounterClockwise;
 
             var vertexBindings = new Refresh.VertexBinding[1]
             {
@@ -377,9 +320,7 @@ namespace CampariTest
         {
             while (!quit)
             {
-                SDL.SDL_Event _Event;
-
-                while (SDL.SDL_PollEvent(out _Event) == 1)
+                while (SDL.SDL_PollEvent(out SDL.SDL_Event _Event) == 1)
                 {
                     switch (_Event.type)
                     {
