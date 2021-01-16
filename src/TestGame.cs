@@ -431,7 +431,7 @@ namespace CampariTest
         {
             graphicsDevice.Wait();
             screenshotBuffer.GetData(screenshotPixels, screenShotBufferSize);
-            Texture.SavePNG("screenshot2.png", 1280, 720, screenshotPixels);
+            Texture.SavePNG("screenshot.png", 1280, 720, screenshotPixels);
         }
     }
 }
