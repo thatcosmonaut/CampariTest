@@ -3,6 +3,7 @@ using SDL2;
 using Campari;
 using RefreshCS;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace CampariTest
 {
@@ -61,6 +62,11 @@ namespace CampariTest
 
         Texture[] sampleTextures = new Texture[2];
         Sampler[] sampleSamplers = new Sampler[2];
+
+        uint screenshotKeyPressed;
+        byte[] screenshotPixels;
+        Campari.Buffer screenshotBuffer;
+        uint screenShotBufferSize;
 
         public bool Initialize(uint windowWidth, uint windowHeight)
         {
@@ -311,6 +317,10 @@ namespace CampariTest
             sampleSamplers[0] = sampler;
             sampleSamplers[1] = sampler;
 
+            screenShotBufferSize = windowWidth * windowHeight * 4;
+            screenshotPixels = new byte[screenShotBufferSize];
+            screenshotBuffer = new Campari.Buffer(graphicsDevice, 0, screenShotBufferSize);
+            
             return true;
         }
 
@@ -318,12 +328,34 @@ namespace CampariTest
         {
             while (!quit)
             {
+                if (screenshotKeyPressed == 1)
+                {
+                    screenshotKeyPressed = 2;
+                }
+
                 while (SDL.SDL_PollEvent(out SDL.SDL_Event _Event) == 1)
                 {
                     switch (_Event.type)
                     {
                         case SDL.SDL_EventType.SDL_QUIT:
                             quit = true;
+                            break;
+
+                        case SDL.SDL_EventType.SDL_KEYDOWN:
+                            if (_Event.key.keysym.sym == SDL.SDL_Keycode.SDLK_s)
+                            {
+                                screenshotKeyPressed = 1;
+                            }
+                            break;
+
+                        case SDL.SDL_EventType.SDL_KEYUP:
+                            if (_Event.key.keysym.sym == SDL.SDL_Keycode.SDLK_s)
+                            {
+                                if (screenshotKeyPressed != 1)
+                                {
+                                    screenshotKeyPressed = 0;
+                                }
+                            }
                             break;
                     }
                 }
@@ -379,9 +411,27 @@ namespace CampariTest
             commandBuffer.BindFragmentSamplers(sampleTextures, sampleSamplers);
             commandBuffer.DrawPrimitives(0, 1, 0, fragmentParamOffset);
             commandBuffer.EndRenderPass();
-            commandBuffer.QueuePresent(ref mainColorTargetTextureSlice, ref flip, Refresh.Filter.Nearest);
 
+            if (screenshotKeyPressed == 1)
+            {
+                commandBuffer.CopyTextureToBuffer(ref mainColorTargetTextureSlice, screenshotBuffer);
+            }
+
+            commandBuffer.QueuePresent(ref mainColorTargetTextureSlice, ref flip, Refresh.Filter.Nearest);
             graphicsDevice.Submit(commandBuffer);
+
+            if (screenshotKeyPressed == 1)
+            {
+                var thread = new Thread(new ThreadStart(SaveScreenshot));
+                thread.Start();
+            }
+        }
+
+        private void SaveScreenshot()
+        {
+            graphicsDevice.Wait();
+            screenshotBuffer.GetData(screenshotPixels, screenShotBufferSize);
+            Texture.SavePNG("screenshot2.png", 1280, 720, screenshotPixels);
         }
     }
 }
