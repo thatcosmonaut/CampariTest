@@ -29,7 +29,7 @@ namespace CampariTest
         ulong currentTime = SDL.SDL_GetPerformanceCounter();
         double accumulator = 0;
 
-        RefreshDevice Device;
+        GraphicsDevice graphicsDevice;
         IntPtr WindowHandle;
 
         ShaderModule passthroughVertexShaderModule;
@@ -83,18 +83,16 @@ namespace CampariTest
 
             /* Init Refresh */
 
-            Refresh.PresentationParameters presentationParameters = new Refresh.PresentationParameters
-            {
-                deviceWindowHandle = WindowHandle,
-                presentMode = Refresh.PresentMode.FIFO
-            };
-
-            Device = new RefreshDevice(presentationParameters, true);
+            graphicsDevice = new GraphicsDevice(
+                WindowHandle,
+                Refresh.PresentMode.FIFO,
+                true
+            );
 
             /* Init Shaders */
 
-            passthroughVertexShaderModule = new ShaderModule(Device, new System.IO.FileInfo("passthrough_vert.spv"));
-            raymarchFragmentShaderModule = new ShaderModule(Device, new System.IO.FileInfo("hexagon_grid.spv"));
+            passthroughVertexShaderModule = new ShaderModule(graphicsDevice, new System.IO.FileInfo("passthrough_vert.spv"));
+            raymarchFragmentShaderModule = new ShaderModule(graphicsDevice, new System.IO.FileInfo("hexagon_grid.spv"));
 
             raymarchUniforms.time = 0;
             raymarchUniforms.padding = 0;
@@ -103,12 +101,12 @@ namespace CampariTest
 
             /* Load Textures */
 
-            woodTexture = Texture.LoadPNG(Device, new System.IO.FileInfo("woodgrain.png"));
-            noiseTexture = Texture.LoadPNG(Device, new System.IO.FileInfo("noise.png"));
+            woodTexture = Texture.LoadPNG(graphicsDevice, new System.IO.FileInfo("woodgrain.png"));
+            noiseTexture = Texture.LoadPNG(graphicsDevice, new System.IO.FileInfo("noise.png"));
 
             SamplerState samplerState = SamplerState.LinearWrap;
 
-            sampler = new Sampler(Device, ref samplerState);
+            sampler = new Sampler(graphicsDevice, ref samplerState);
 
             /* Load Vertex Data */
 
@@ -131,7 +129,7 @@ namespace CampariTest
             vertices[2].u = 0;
             vertices[2].v = 0;
 
-            vertexBuffer = new Campari.Buffer(Device, Refresh.BufferUsageFlags.Vertex, 4 * 5 * 3);
+            vertexBuffer = new Campari.Buffer(graphicsDevice, Refresh.BufferUsageFlags.Vertex, 4 * 5 * 3);
             vertexBuffer.SetData(0, vertices, 4 * 5 * 3);
 
             vertexBuffers[0] = vertexBuffer;
@@ -164,10 +162,10 @@ namespace CampariTest
                 storeOp = Refresh.StoreOp.Store
             };
 
-            mainRenderPass = new RenderPass(Device, colorTargetDescription);
+            mainRenderPass = new RenderPass(graphicsDevice, colorTargetDescription);
 
             mainColorTargetTexture = Texture.CreateTexture2D(
-                Device,
+                graphicsDevice,
                 windowWidth,
                 windowHeight,
                 Refresh.ColorFormat.R8G8B8A8,
@@ -176,10 +174,10 @@ namespace CampariTest
 
             mainColorTargetTextureSlice = new TextureSlice(mainColorTargetTexture);
 
-            mainColorTarget = new ColorTarget(Device, Refresh.SampleCount.One, ref mainColorTargetTextureSlice);
+            mainColorTarget = new ColorTarget(graphicsDevice, Refresh.SampleCount.One, ref mainColorTargetTextureSlice);
 
             mainFramebuffer = new Framebuffer(
-                Device,
+                graphicsDevice,
                 windowWidth,
                 windowHeight,
                 mainRenderPass,
@@ -293,7 +291,7 @@ namespace CampariTest
             };
 
             mainGraphicsPipeline = new GraphicsPipeline(
-                Device,
+                graphicsDevice,
                 colorBlendState,
                 depthStencilState,
                 vertexShaderState,
@@ -366,7 +364,7 @@ namespace CampariTest
 
         public void Draw()
         {
-            var commandBuffer = Device.AcquireCommandBuffer();
+            var commandBuffer = graphicsDevice.AcquireCommandBuffer();
 
             commandBuffer.BeginRenderPass(
                 mainRenderPass,
@@ -383,7 +381,7 @@ namespace CampariTest
             commandBuffer.EndRenderPass();
             commandBuffer.QueuePresent(ref mainColorTargetTextureSlice, ref flip, Refresh.Filter.Nearest);
 
-            Device.Submit(commandBuffer);
+            graphicsDevice.Submit(commandBuffer);
         }
     }
 }
