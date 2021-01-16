@@ -13,6 +13,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Content Include="Content\**\*.*">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include=".\lib\Campari\Campari.csproj" />
         <ProjectReference Include=".\lib\SDL2-CS\SDL2-CS.csproj" />
     </ItemGroup>

@@ -97,8 +97,8 @@ namespace CampariTest
 
             /* Init Shaders */
 
-            passthroughVertexShaderModule = new ShaderModule(graphicsDevice, new System.IO.FileInfo("passthrough_vert.spv"));
-            raymarchFragmentShaderModule = new ShaderModule(graphicsDevice, new System.IO.FileInfo("hexagon_grid.spv"));
+            passthroughVertexShaderModule = new ShaderModule(graphicsDevice, new System.IO.FileInfo("Content/passthrough_vert.spv"));
+            raymarchFragmentShaderModule = new ShaderModule(graphicsDevice, new System.IO.FileInfo("Content/hexagon_grid.spv"));
 
             raymarchUniforms.time = 0;
             raymarchUniforms.padding = 0;
@@ -107,8 +107,8 @@ namespace CampariTest
 
             /* Load Textures */
 
-            woodTexture = Texture.LoadPNG(graphicsDevice, new System.IO.FileInfo("woodgrain.png"));
-            noiseTexture = Texture.LoadPNG(graphicsDevice, new System.IO.FileInfo("noise.png"));
+            woodTexture = Texture.LoadPNG(graphicsDevice, new System.IO.FileInfo("Content/woodgrain.png"));
+            noiseTexture = Texture.LoadPNG(graphicsDevice, new System.IO.FileInfo("Content/noise.png"));
 
             SamplerState samplerState = SamplerState.LinearWrap;
 
@@ -320,7 +320,7 @@ namespace CampariTest
             screenShotBufferSize = windowWidth * windowHeight * 4;
             screenshotPixels = new byte[screenShotBufferSize];
             screenshotBuffer = new Campari.Buffer(graphicsDevice, 0, screenShotBufferSize);
-            
+
             return true;
         }
 
