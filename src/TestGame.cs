@@ -42,13 +42,11 @@ namespace CampariTest
         Texture noiseTexture;
         Sampler sampler;
 
-        Campari.Buffer[] vertexBuffers = new Campari.Buffer[1];
         Campari.Buffer vertexBuffer;
-        UInt64[] offsets;
 
         Refresh.Rect renderArea;
         Refresh.Rect flip;
-        Refresh.Color[] clearColors = new Refresh.Color[1];
+        Refresh.Color clearColor;
 
         RenderPass mainRenderPass;
 
@@ -59,9 +57,6 @@ namespace CampariTest
         Framebuffer mainFramebuffer;
 
         GraphicsPipeline mainGraphicsPipeline;
-
-        Texture[] sampleTextures = new Texture[2];
-        Sampler[] sampleSamplers = new Sampler[2];
 
         uint screenshotKeyPressed;
         byte[] screenshotPixels;
@@ -138,11 +133,6 @@ namespace CampariTest
             vertexBuffer = new Campari.Buffer(graphicsDevice, Refresh.BufferUsageFlags.Vertex, 4 * 5 * 3);
             vertexBuffer.SetData(0, vertices, 4 * 5 * 3);
 
-            vertexBuffers[0] = vertexBuffer;
-
-            offsets = new ulong[1];
-            offsets[0] = 0;
-
             /* Render Pass */
 
             renderArea.x = 0;
@@ -155,10 +145,10 @@ namespace CampariTest
             flip.w = (int) windowWidth;
             flip.h = -(int) windowHeight;
 
-            clearColors[0].r = 237;
-            clearColors[0].g = 41;
-            clearColors[0].b = 57;
-            clearColors[0].a = byte.MaxValue;
+            clearColor.r = 237;
+            clearColor.g = 41;
+            clearColor.b = 57;
+            clearColor.a = byte.MaxValue;
 
             Refresh.ColorTargetDescription colorTargetDescription = new Refresh.ColorTargetDescription
             {
@@ -311,12 +301,6 @@ namespace CampariTest
                 mainRenderPass
             );
 
-            sampleTextures[0] = woodTexture;
-            sampleTextures[1] = noiseTexture;
-
-            sampleSamplers[0] = sampler;
-            sampleSamplers[1] = sampler;
-
             screenShotBufferSize = windowWidth * windowHeight * 4;
             screenshotPixels = new byte[screenShotBufferSize];
             screenshotBuffer = new Campari.Buffer(graphicsDevice, 0, screenShotBufferSize);
@@ -402,13 +386,16 @@ namespace CampariTest
                 mainRenderPass,
                 mainFramebuffer,
                 ref renderArea,
-                clearColors
+                clearColor
             );
 
             commandBuffer.BindGraphicsPipeline(mainGraphicsPipeline);
             var fragmentParamOffset = commandBuffer.PushFragmentShaderParams(raymarchUniforms);
-            commandBuffer.BindVertexBuffers(0, 1, vertexBuffers, offsets);
-            commandBuffer.BindFragmentSamplers(sampleTextures, sampleSamplers);
+            commandBuffer.BindVertexBuffers(0, new BufferBinding(vertexBuffer, 0));
+            commandBuffer.BindFragmentSamplers(
+                new TextureSamplerBinding(woodTexture, sampler), 
+                new TextureSamplerBinding(noiseTexture, sampler)
+            );
             commandBuffer.DrawPrimitives(0, 1, 0, fragmentParamOffset);
             commandBuffer.EndRenderPass();
 
